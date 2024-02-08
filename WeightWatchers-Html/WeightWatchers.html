@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weight Watchers Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #cardDetails,
+        #register,
+        #login {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Weight Watchers Page</h1>
+
+        <form id="registerForm">
+            <h2>Register</h2>
+            <label for="firstName">First Name:</label>
+            <input type="text" id="firstName" required>
+            <label for="lastName">Last Name:</label>
+            <input type="text" id="lastName" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+            <label for="height">Height (in cm):</label>
+            <input type="number" id="height" required>
+            <button type="button" onclick="register()">Register</button>
+        </form>
+        <div id="register"></div>
+        <form id="loginForm">
+            <h2>Login</h2>
+            <label for="loginEmail">Email:</label>
+            <input type="email" id="loginEmail" required>
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" required>
+            <button type="button" onclick="login()">Login</button>
+        </form>
+        <div id="login"></div>
+        <form id="getCardForm">
+            <h2>Get Card by ID</h2>
+            <label for="cardId">Card ID:</label>
+            <input type="number" id="cardId" required>
+            <button type="button" onclick="getCardById()">Get Card</button>
+        </form>
+
+        <div id="cardDetails"></div>
+    </div>
+
+    <script>
+        async function register() {
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const height = document.getElementById('height').value;
+
+            const subscriberData = {
+                FirstName: firstName,
+                LastName: lastName,
+                Email: email,
+                Password: password,
+                Height: parseFloat(height) // Assuming height is a double, parse it accordingly
+            };
+
+            const response = await fetch('http://localhost:5032/api/WeightWatchers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(subscriberData)
+            });
+
+            const result = await response.json();
+            console.log(result)
+            const cardDetailsDiv = document.getElementById("register");
+
+            // Check if the registration was successful
+            if (result.response) {
+                cardDetailsDiv.innerHTML = "Registration successful!";
+            } else {
+                cardDetailsDiv.innerHTML = "Registration failed. Please try again.";
+            }
+        }
+
+        async function login() {
+            const loginEmail = document.getElementById('loginEmail').value;
+            const loginPassword = document.getElementById('loginPassword').value;
+
+            const response = await fetch('http://localhost:5032/api/WeightWatchers/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: loginEmail, password: loginPassword })
+            });
+
+            const result = await response.json();
+            console.log(result);
+            const loginMessageElement = document.getElementById("login");
+
+            if (result.response != null) {
+                loginMessageElement.innerText = "Login successful!";
+            } else {
+                loginMessageElement.innerText = "Invalid email or password.";
+            }
+        }
+
+        async function getCardById() {
+            const cardId = document.getElementById('cardId').value;
+
+            const response = await fetch(`http://localhost:5032/api/WeightWatchers/${cardId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await (response.json())
+            console.log(result);
+            const cardDetailsElement = document.getElementById("cardDetails");
+            if (result.response != null) {
+                const cardData = result.response;
+                console.log(cardData)
+                const cardDetails = `
+            <p>ID: ${cardData?.id}</p>
+            <p>Name: ${cardData?.firstName} ${cardData.lastName}</p>
+            <p>Height: ${cardData?.height} cm</p>
+            <p>Weight: ${cardData?.weight} kg</p>
+            <p>BMI: ${cardData?.bmi}</p>
+            <p>Status: ${result?.status}</p>
+        `;
+                cardDetailsElement.innerHTML = cardDetails;
+            } else {
+                cardDetailsElement.innerText = "Card not found or an error occurred.";
+            }
+        }
+    </script>
+</body>
+
+</html>
